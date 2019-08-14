@@ -6,8 +6,8 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import PoseStamped
 from scipy.spatial import KDTree
-from styx_msgs.msg import Int32
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 LOOKAHEAD_WPS = 50  # Number of waypoints we will publish.
 CONSTANT_DECEL = 1 / LOOKAHEAD_WPS  # Deceleration constant for smoother braking
@@ -31,7 +31,7 @@ class WaypointUpdater(object):
         self.waypoint_tree = None
         self.decelerate_count = 0
 
-        rospy.loop()
+        self.loop()
 
 	def loop(self):
 		rate = rospy.Rate(PUBLISHING_RATE)
