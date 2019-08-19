@@ -4,6 +4,7 @@ from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
 from styx_msgs.msg import TrafficLightArray, TrafficLight
 from styx_msgs.msg import Lane
+from scipy.spatial import KDTree
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
@@ -72,7 +73,7 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
-        self.has_image = True
+        #self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
 
@@ -94,7 +95,7 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
@@ -132,6 +133,16 @@ class TLDetector(object):
                 cv2.imwrite(save_file, cv_image)
 
         return classification
+
+    def to_string(self, state):
+        out = "unknown"
+        if state == TrafficLight.GREEN:
+            out = "green"
+        elif state == TrafficLight.YELLOW:
+            out = "yellow"
+        elif state == TrafficLight.RED:
+            out = "red"
+        return out
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its

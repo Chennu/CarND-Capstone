@@ -19,11 +19,6 @@ LOGGING_THROTTLE_FACTOR = PUBLISHING_RATE * 2  # Only log at this rate (1 / Hz)
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=2)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb, queue_size=8)
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
-        rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
         self.base_lane = None
         self.pose = None
         self.stopline_wp_idx = -1
@@ -31,7 +26,19 @@ class WaypointUpdater(object):
         self.waypoint_tree = None
         self.decelerate_count = 0
 
-        self.loop()
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb, queue_size=2)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb, queue_size=8)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb, queue_size=1)
+        #rospy.Subscriber('/obstacle_waypoint', Lane, self.obstacle_cb, queue_size=1)
+
+        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+
+        rate = rospy.Rate(PUBLISHING_RATE)
+        while not rospy.is_shutdown():
+            if self.pose and self.base_lane:
+                self.publish_waypoints()
+            rate.sleep()
+
 
 	def loop(self):
 		rate = rospy.Rate(PUBLISHING_RATE)
